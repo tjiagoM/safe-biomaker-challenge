@@ -1,9 +1,12 @@
 #!/usr/bin/python -u
 # coding=utf-8
 # "DATASHEET": http://cl.ly/ekot
-# https://gist.github.com/kadamski/92653913a53baf9dd1a8
+# Originally adapted from https://gist.github.com/kadamski/92653913a53baf9dd1a8
 from __future__ import print_function
-import serial, struct, sys, time, json, subprocess
+import struct, time
+from serial import Serial
+
+from datetime import datetime
 
 DEBUG = 0
 CMD_MODE = 2
@@ -16,12 +19,10 @@ MODE_ACTIVE = 0
 MODE_QUERY = 1
 PERIOD_CONTINUOUS = 0
 
-JSON_FILE = '/var/www/html/aqi.json'
+LOGS_LOCATION = '/var/www/html/logs/'
+RASPBERRY_NAME = 'tiago_pi'
 
-MQTT_HOST = ''
-MQTT_TOPIC = '/weather/particulatematter'
-
-ser = serial.Serial()
+ser = Serial()
 ser.port = "/dev/ttyUSB0"
 ser.baudrate = 9600
 
@@ -101,47 +102,37 @@ def cmd_set_id(id):
     ser.write(construct_command(CMD_DEVICE_ID, [0]*10+[id_l, id_h]))
     read_response()
 
-def pub_mqtt(jsonrow):
-    cmd = ['mosquitto_pub', '-h', MQTT_HOST, '-t', MQTT_TOPIC, '-s']
-    print('Publishing using:', cmd)
-    with subprocess.Popen(cmd, shell=False, bufsize=0, stdin=subprocess.PIPE).stdin as f:
-        json.dump(jsonrow, f)
+
+def write_to_csv(pm10=0, pm25=0, first_time=False):
+    with open(FILE_NAME,'a') as fd:
+        if first_time:
+            fd.write('"timestamp","pd10","pd25"\n')
+        else:
+            date_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S:%f")
+            fd.write('"' + date_now + '",' + str(pm10) + ',' + str(pm25) + '\n')
 
 
 if __name__ == "__main__":
     cmd_set_sleep(0)
     cmd_firmware_ver()
     cmd_set_working_period(PERIOD_CONTINUOUS)
-    cmd_set_mode(MODE_QUERY);
+    cmd_set_mode(MODE_QUERY)
+    
+    FILE_NAME = LOGS_LOCATION + RASPBERRY_NAME + '_' + datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + '.csv'
+    
+    write_to_csv(first_time=True)
+    
+    
     while True:
+        time.sleep(1)
         #cmd_set_sleep(0)
-        for t in range(1): #It was 15
-            values = cmd_query_data();
-            if values is not None and len(values) == 2:
-              print("PM2.5: ", values[0], ", PM10: ", values[1])
-              time.sleep(1)
-
-        # open stored data
-        try:
-            with open(JSON_FILE) as json_data:
-                data = json.load(json_data)
-        except IOError as e:
-            data = []
-
-        # check if length is more than 100 and delete first element
-        if len(data) > 100:
-            data.pop(0)
-
-        # append new values
-        jsonrow = {'pm25': values[0], 'pm10': values[1], 'time': time.strftime("%d.%m.%Y %H:%M:%S")}
-        data.append(jsonrow)
-
-        # save it
-        with open(JSON_FILE, 'w') as outfile:
-            json.dump(data, outfile)
-
-        if MQTT_HOST != '':
-            pub_mqtt(jsonrow)
+        values = cmd_query_data()
+        if values is None or len(values) != 2:
+            print("OH NO")
+            continue
+        print("PM2.5: ", values[0], ", PM10: ", values[1])
+        
+        write_to_csv(pm10=values[1], pm25=values[0])
             
         #print("Going to sleep for 1 min...")
         #cmd_set_sleep(1)
