@@ -3,7 +3,7 @@
 # "DATASHEET": http://cl.ly/ekot
 # Originally adapted from https://gist.github.com/kadamski/92653913a53baf9dd1a8
 from __future__ import print_function
-import struct, time
+import struct, time, sys
 from serial import Serial
 
 from datetime import datetime
@@ -51,6 +51,8 @@ def process_data(d):
     pm25 = r[0]/10.0
     pm10 = r[1]/10.0
     checksum = sum(ord(v) for v in d[2:8])%256
+    if not (checksum==r[2] and r[3]==0xab):
+        print("CHECKSHUM FAILED !!!!!")
     return [pm25, pm10]
     #print("PM 2.5: {} μg/m^3  PM 10: {} μg/m^3 CRC={}".format(pm25, pm10, "OK" if (checksum==r[2] and r[3]==0xab) else "NOK"))
 
@@ -118,7 +120,12 @@ if __name__ == "__main__":
     cmd_set_working_period(PERIOD_CONTINUOUS)
     cmd_set_mode(MODE_QUERY)
     
-    FILE_NAME = LOGS_LOCATION + RASPBERRY_NAME + '_' + datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + '.csv'
+    if len(sys.argv) > 1:
+        EXPERIMENT_NAME = sys.argv[1]
+    else:
+        EXPERIMENT_NAME = "NOEXPERIMENTNAME"
+    
+    FILE_NAME = LOGS_LOCATION + RASPBERRY_NAME + '_' + EXPERIMENT_NAME + '_' + datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + '.csv'
     
     write_to_csv(first_time=True)
     
@@ -130,7 +137,8 @@ if __name__ == "__main__":
         if values is None or len(values) != 2:
             print("OH NO")
             continue
-        print("PM2.5: ", values[0], ", PM10: ", values[1])
+        date_now = datetime.now().strftime("%H:%M:%S")
+        print(date_now, "----", "PM2.5: ", values[0], ", PM10: ", values[1])
         
         write_to_csv(pm10=values[1], pm25=values[0])
             
