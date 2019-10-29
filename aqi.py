@@ -21,6 +21,7 @@ PERIOD_CONTINUOUS = 0
 
 LOGS_LOCATION = '/var/www/html/logs/'
 RASPBERRY_NAME = 'tiago_pi'
+TIMESTEP = 30 # in seconds
 
 ser = Serial()
 ser.port = "/dev/ttyUSB0"
@@ -131,7 +132,7 @@ if __name__ == "__main__":
     
     
     while True:
-        time.sleep(1)
+        time.sleep(TIMESTEP)
         #cmd_set_sleep(0)
         values = cmd_query_data()
         if values is None or len(values) != 2:
