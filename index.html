@@ -3,29 +3,29 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AQI</title>
+    <title>Sensor Readings</title>
     <script src="aqi.js"></script>
     <link rel='stylesheet' href='style.css'>
   </head>
   <body>
     <div class="container">
-      <h1>AQI</h1>
-      <p class='time' id="time"></p>
+      <h1>Sensor Readings</h1>
       <div class='aqi-container' id="containerPm25">
           <div class='aqi-label'>PM2.5</div>
-          <div class='aqi' id="pm25"></div>
-          <div class='pm-label' id="aqiPm25"></div>
+          <div class='pm-label' id="pm25"></div>
+          <div class='aqi' id="aqiPm25"></div>
       </div>
       <div class='aqi-container' id="containerPm10">
           <div class='aqi-label'>PM10</div>
-          <div class='aqi' id="pm10"></div>
-          <div class='pm-label' id="aqiPm10"></div>
+          <div class='pm-label' id="pm10"></div>
+          <div class='aqi' id="aqiPm10"></div>
       </div>
+      <div class='time' id="time"></div>
     </div>
   </body>
   <script type="text/javascript">
     getData();
     // 2nd argument of setInterval() is in milliseconds
-    setInterval(getData, 500);
+    setInterval(getData, 1000);
   </script>
 </html>

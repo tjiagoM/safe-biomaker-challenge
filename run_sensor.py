@@ -3,7 +3,7 @@
 # "DATASHEET": http://cl.ly/ekot
 # Originally adapted from https://gist.github.com/kadamski/92653913a53baf9dd1a8
 from __future__ import print_function
-import struct, time, sys
+import struct, time, sys, json
 from serial import Serial
 
 from datetime import datetime
@@ -19,6 +19,7 @@ MODE_ACTIVE = 0
 MODE_QUERY = 1
 PERIOD_CONTINUOUS = 0
 
+JSON_FILE_LOCATION = '/var/www/html/safe-biomaker-challenge/aqi.json'
 LOGS_LOCATION = '/var/www/html/logs/'
 RASPBERRY_NAME = 'tiago_pi'
 TIMESTEP = 30 # in seconds
@@ -136,12 +137,33 @@ if __name__ == "__main__":
         #cmd_set_sleep(0)
         values = cmd_query_data()
         if values is None or len(values) != 2:
-            print("OH NO")
+            print("OH NO, something wrong with the sensor readings...")
             continue
         date_now = datetime.now().strftime("%H:%M:%S")
         print(date_now, "----", "PM2.5: ", values[0], ", PM10: ", values[1])
         
         write_to_csv(pm10=values[1], pm25=values[0])
+
+
+        # open JSON stored data
+        try:
+            with open(JSON_FILE_LOCATION) as json_data:
+                data = json.load(json_data)
+        except IOError as e:
+            print("Something strange with reading the Json!")
+            data = []
+
+        # check if length is more than 10 and delete first element
+        if len(data) > 10:
+            data.pop(0)
+
+        # append new values
+        jsonrow = {'pm25': values[0], 'pm10': values[1], 'time': time.strftime("%d.%m.%Y %H:%M:%S")}
+        data.append(jsonrow)
+
+        # save the new json file
+        with open(JSON_FILE_LOCATION, 'w') as outfile:
+            json.dump(data, outfile)
             
         #print("Going to sleep for 1 min...")
         #cmd_set_sleep(1)

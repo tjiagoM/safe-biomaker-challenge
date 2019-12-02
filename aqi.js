@@ -16,11 +16,11 @@ function updateHtml(data) {
   let aqiPm10 = calcAQIpm10(data.pm10);
 
   //update HTML
-  document.getElementById("time").innerHTML = data.time;
-  document.getElementById("aqiPm25").innerHTML = aqiPm25;
-  document.getElementById("aqiPm10").innerHTML = aqiPm10;
-  document.getElementById("pm25").innerHTML = "(PM2.5: " + data.pm25 + " µg/m³)";
-  document.getElementById("pm10").innerHTML = "(PM10: " + data.pm10 + " µg/m³)";
+  document.getElementById("time").innerHTML = "Last reading: " + data.time;
+  document.getElementById("aqiPm25").innerHTML = "(AQI: " + aqiPm25 + ")";
+  document.getElementById("aqiPm10").innerHTML = "(AQI: " + aqiPm10 + ")";
+  document.getElementById("pm25").innerHTML = data.pm25 + " µg/m³";
+  document.getElementById("pm10").innerHTML = data.pm10 + " µg/m³";
 
   //set colors
   colorsPm25 = getColor(aqiPm25);
