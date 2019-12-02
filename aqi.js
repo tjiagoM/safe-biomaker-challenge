@@ -1,12 +1,14 @@
 function getData() {
-  fetch("aqi.json").then(response => {
-    response.json().then(data => {
-      //console.log(data);
-      updateHtml(data[data.length-1]);
+  fetch("aqi.json")
+    .then(response => {
+       response.json().then(data => {
+         console.log(data);
+         updateHtml(data[data.length-1]);
+         })
     })
-  }).catch(err => {
-    console.log(err);
-  })
+    .catch(err => {
+      console.log(err);
+    })
 }
 
 function updateHtml(data) {
