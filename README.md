@@ -66,14 +66,14 @@ $ sudo chown pi:pi /var/www/html/
 $ cd /var/www/html/
 $ git clone https://github.com/tjiagoM/safe-biomaker-challenge.git
 $ cd safe-biomaker-challenge/
-$ chmod +x aqi.py
+$ chmod +x run_sensor.py
 $ chmod +x sleep_sensor.py
 $ mkdir /var/www/html/logs
 ```
 
 ### 4. Defining configuration variables
 
-From the previous terminal, you will be in the folder where the main python script (*aqi.py*) will be executed. Two important variables which you might consider changing are:
+From the previous terminal, you will be in the folder where the main python script (*run_sensor.py*) will be executed. Two important variables which you might consider changing are:
 
 - `LOGS_LOCATION`: Where the reading logs will be stored
 - `RASPBERRY_NAME`: The identification/name of the raspberry pi unit where the code will be run. This is important because when the file is created to save the sensor's readings, it will use this name
@@ -85,10 +85,10 @@ We recommend running `screen` in the unit's terminal before executing any code s
 
 ### Reading from the sensor
 
-You just need to execute the `aqi.py` script. You can specify the name of the experiment so the file name with the logs will be easier to identify:
+You just need to execute the `run_sensor.py` script. You can specify the name of the experiment so the file name with the logs will be easier to identify:
 
 ```bash
-$ ./aqi.py EXPERIMENT_NAME
+$ ./run_sensor.py EXPERIMENT_NAME
 ```
 
 ### Stopping the sensor
@@ -99,3 +99,12 @@ When the sensor is connected to raspberry pi, its fan will be working. You can c
 $ ./sleep_sensor.py
 ```
 
+
+## Webviewer
+
+If you followed the previous instructions, you can check the sensor readings with a simple webviewer (also originally based from [this repository](https://github.com/zefanja/aqi "this repository")). If your computer/laptop is connected to the same network as your raspberry pi, you just need to open a browser and go to `http://raspberrypi_location/safe-biomaker-challenge`. There, you will be able to see the values being read from the sensor, as well as the respective AQI value for each.
+
+There are a few files which you should be aware of in order to understand how this done.
+- `run_sensor.py`: The script will have a variable named `JSON_FILE_LOCATION` which is the location of a json object in disk. New readings will be dumped to this object, and the script will keep the size to 10.
+- `index.html`: You have a call to `setInterval()`, in which the second argument should be smaller then the rate of readings in `run_sensor.py` in order to keep up with new readings.
+- `aqi.js`: In this Javascript file the Json object is read from disk, then the AQI values are calculated and updated in the HTML page.
